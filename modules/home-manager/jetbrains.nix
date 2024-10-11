@@ -4,7 +4,6 @@ let
   dotnet = pkgs.dotnet-sdk_8;
   extra-path = with pkgs; [
     dotnet
-    dotnetPackages.Nuget
     mono
     msbuild
     # Add any extra binaries you want accessible to Rider here
