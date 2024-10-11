@@ -50,6 +50,7 @@
         home-modules = "${self}/modules/home-manager";
         host = "fishbones"; # The hostname of the machine this configuration is for
         username = "chakibchemso"; # The username of the user this configuration is for
+        home = home-manager.users."${sys-config.username}".home;
       };
     in
     {

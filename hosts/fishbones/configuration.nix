@@ -18,6 +18,9 @@
     "${sys-config.home-modules}/jetbrains.nix"
   ];
 
+  hardware.graphics.enable = true;
+  hardware.graphics.enable32Bit = true;
+
   # Bootloader.
   boot.loader.systemd-boot.enable = false;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -136,7 +139,8 @@
       vesktop
       # spotify
       # spicetify-cli
-      (unityhub.override { extraLibs = { ... }: [ harfbuzz ]; })
+      # (unityhub.override { extraLibs = { ... }: [ harfbuzz ]; })
+      unityhub
       godot_4
       # vscode
       jetbrains-toolbox
@@ -157,7 +161,8 @@
       nautilus
       kdePackages.ark
 
-      # dotnet-sdk_8
+      dotnet-sdk_8
+      rustup
       # cargo
       # rustc
     ];
@@ -177,8 +182,8 @@
     playerctl
 
     greetd.tuigreet
-    dunst
-    waybar
+    # dunst
+    # waybar
     # rofi-wayland
     hyprlock
     hypridle
@@ -187,10 +192,10 @@
     hyprpicker
     mpvpaper
 
-    # qt5.qtwayland
-    # qt6.qtwayland
-    # libsForQt5.qtstyleplugin-kvantum
-    # libsForQt5.lightly
+    qt5.qtwayland
+    qt6.qtwayland
+    libsForQt5.qtstyleplugin-kvantum
+    libsForQt5.lightly
 
     nixd
     nixfmt-rfc-style
