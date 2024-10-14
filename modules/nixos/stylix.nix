@@ -19,6 +19,9 @@ in
   stylix.cursor = {
     package = pkgs.rose-pine-cursor;
     name = "BreezeX-RosePine-Linux"; # or "BreezeX-RosePineDawn-Linux";
+
+    # package = pkgs.apple-cursor;
+    # name = "macOS";
     size = 24;
   };
 

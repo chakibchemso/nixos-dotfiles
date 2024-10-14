@@ -22,14 +22,14 @@
   hardware.graphics.enable32Bit = true;
 
   # Bootloader.
-  boot.loader.systemd-boot.enable = false;
+  boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.efi.efiSysMountPoint = "/boot";
   boot.loader.timeout = 3;
-  boot.loader.grub.enable = true;
-  boot.loader.grub.device = "nodev";
-  boot.loader.grub.useOSProber = true;
-  boot.loader.grub.efiSupport = true;
+  # boot.loader.grub.enable = true;
+  # boot.loader.grub.device = "nodev";
+  # boot.loader.grub.useOSProber = true;
+  # boot.loader.grub.efiSupport = true;
 
   # Plymouth.
   boot.plymouth.enable = true;
@@ -97,8 +97,9 @@
   #  services.displayManager.sddm.enable = true;
   #  services.displayManager.sddm.wayland.enable = true;
   services.greetd.enable = true;
-  services.greetd.settings.default_session.command = "${pkgs.greetd.tuigreet}/bin/tuigreet --time --time-format '%I:%M %p | %a • %h | %F' --cmd Hyprland";
-  services.greetd.settings.default_session.user = "greeter";
+  # services.greetd.settings.default_session.command = "${pkgs.greetd.tuigreet}/bin/tuigreet --time --time-format '%I:%M %p | %a • %h | %F' --cmd Hyprland";
+  services.greetd.settings.default_session.command = "dbus-launch Hyprland";
+  services.greetd.settings.default_session.user = "${sys-config.username}";
 
   programs.hyprland.enable = true;
 
@@ -149,6 +150,7 @@
       (jetbrains.plugins.addPlugins jetbrains.clion [ "github-copilot" ])
       (jetbrains.plugins.addPlugins jetbrains.webstorm [ "github-copilot" ])
       ani-cli
+      mpv
       vlc
 
       # (callPackage "${sys-config.home-modules}/fdm.nix" { })
@@ -168,12 +170,97 @@
     ];
   };
 
+  environment.sessionVariables = {
+    ANI_CLI_PLAYER = "mpv";
+  };
+
+  documentation.man.generateCaches = false;
+
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
+
+    (pkgs.writeShellScriptBin "song-status" ''
+      #!/bin/bash
+      player_name=$(playerctl metadata --format '{{playerName}}')
+      player_status=$(playerctl status)
+
+      if [[ "$player_status" == "Playing" ]]; then
+        if [[ "$player_name" == "spotify" ]]; then
+          song_info=$(playerctl metadata --format '{{title}}  󰓇   {{artist}}')
+        elif [[ "$player_name" == "firefox" ]]; then
+          song_info=$(playerctl metadata --format '{{title}}  󰈹   {{artist}}')
+        elif [[ "$player_name" == "mpd" ]]; then
+          song_info=$(playerctl metadata --format '{{title}}  󰎆   {{artist}}')
+        elif [[ "$player_name" == "chromium" ]]; then
+          song_info=$(playerctl metadata --format '{{title}}  󰊯   {{artist}}')
+        fi
+      fi
+
+      echo "$song_info" 
+    '')
+
+    (pkgs.writeShellScriptBin "network-status" ''
+      #!/bin/sh
+      status="$(nmcli general status | grep -oh "\w*connect\w*")"
+      if [[ "$status" == "disconnected" ]]; then
+        printf "󰤮 "
+      elif [[ "$status" == "connecting" ]]; then
+        printf "󱍸 "
+      elif [[ "$status" == "connected" ]]; then
+        strength="70"
+        # strength = "$(nmcli -f IN-USE,SIGNAL dev wifi | grep '*' | awk '{print $2}')"
+        # strength = "$(python $HOME/.config/Scripts/wifi-conn-strength)"
+        if [[ "$?" == "0" ]]; then
+          if [[ "$strength" -eq "0" ]]; then
+            printf "󰤯 "
+          elif [[ ("$strength" -ge "0") && ("$strength" -le "25") ]]; then
+            printf "󰤟 "  
+          elif [[ ("$strength" -ge "25") && ("$strength" -le "50") ]]; then
+            printf "󰤢 "
+          elif [[ ("$strength" -ge "50") && ("$strength" -le "75") ]]; then
+            printf "󰤥 "
+          elif [[ ("$strength" -ge "75") && ("$strength" -le "100") ]]; then
+            printf "󰤨 "
+          fi
+        else
+          printf "󰈀 "
+        fi
+      fi
+    '')
+
+    (pkgs.writeShellScriptBin "battery-status" ''
+      #!/bin/sh
+      # status="$(acpi -b | grep -ioh "\w*charging\w*")"
+      # level="$(acpi -b | grep -o -P "[0-9]+(?=%)")"
+      status="$(cat /sys/class/power_supply/BAT1/status)"
+      level="$(cat /sys/class/power_supply/BAT1/capacity)"
+      if [[ ("$status" == "Discharging") || ("$status" == "Full") ]]; then
+        if [[ "$level" -eq "0" ]]; then
+          printf " "
+        elif [[ ("$level" -ge "0") && ("$level" -le "25") ]]; then
+          printf " "
+        elif [[ ("$level" -ge "25") && ("$level" -le "50") ]]; then
+          printf " "
+        elif [[ ("$level" -ge "50") && ("$level" -le "75") ]]; then
+          printf " "
+        elif [[ ("$level" -ge "75") && ("$level" -le "100") ]]; then
+          printf " "
+        fi
+      elif [[ "$status" == "Charging" ]]; then
+        printf " "
+      fi
+    '')
+
+    (pkgs.writeShellScriptBin "layout-status" ''
+      #!/bin/sh
+      layout="$(bat /etc/vconsole.conf | grep XKBLAYOUT | awk -F'=' '{print toupper($2)}')"
+      printf "%s   " "$layout"
+    '')
+
     #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     #  wget
     policycoreutils
@@ -191,6 +278,10 @@
     hyprcursor
     hyprpicker
     mpvpaper
+
+    slurp
+    grim
+    swappy
 
     qt5.qtwayland
     qt6.qtwayland

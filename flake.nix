@@ -14,6 +14,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    apple-fonts = {
+      url = "github:chakibchemso/apple-fonts-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     ags = {
       url = "github:Aylur/ags";
       inputs.nixpkgs.follows = "nixpkgs";
